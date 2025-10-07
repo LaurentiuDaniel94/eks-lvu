@@ -3,11 +3,15 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  azs = slice(data.aws_availability_zones.available.names, 0, var.az_count)
+  available_azs     = data.aws_availability_zones.available.names
+  selected_az_count = min(var.az_count, length(local.available_azs))
+  azs               = slice(local.available_azs, 0, local.selected_az_count)
 
   public_subnet_cidrs = [
-    for index in range(var.az_count) : cidrsubnet(var.vpc_cidr_block, 8, index)
+    for index in range(local.selected_az_count) : cidrsubnet(var.vpc_cidr_block, 8, index)
   ]
+
+  cluster_tag_key = "kubernetes.io/cluster/${var.cluster_name}"
 
   tags = merge({
     "ManagedBy" = "Terraform"
@@ -40,9 +44,17 @@ resource "aws_subnet" "public" {
   cidr_block              = local.public_subnet_cidrs[each.value]
   map_public_ip_on_launch = true
 
-  tags = merge(local.tags, {
-    Name = "${var.cluster_name}-public-${each.key}"
-  })
+  tags = merge(
+    local.tags,
+    {
+      Name                               = "${var.cluster_name}-public-${each.key}"
+      "kubernetes.io/role/elb"           = "1"
+      "kubernetes.io/role/internal-elb"  = "0"
+    },
+    {
+      (local.cluster_tag_key) = "shared"
+    }
+  )
 }
 
 resource "aws_route_table" "public" {
@@ -224,11 +236,6 @@ resource "aws_eks_node_group" "default" {
 
   update_config {
     max_unavailable = 1
-  }
-
-  remote_access {
-    ec2_ssh_key               = null
-    source_security_group_ids = []
   }
 
   depends_on = [

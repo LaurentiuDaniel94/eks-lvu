@@ -13,6 +13,11 @@ variable "az_count" {
   description = "Number of availability zones to spread the cluster across."
   type        = number
   default     = 2
+
+  validation {
+    condition     = var.az_count >= 1
+    error_message = "az_count must be at least 1."
+  }
 }
 
 variable "kubernetes_version" {

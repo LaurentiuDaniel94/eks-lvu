@@ -32,3 +32,8 @@ output "node_group_name" {
   description = "Name of the managed node group."
   value       = aws_eks_node_group.default.node_group_name
 }
+
+output "availability_zones" {
+  description = "Availability zones used for the cluster subnets."
+  value       = local.azs
+}

@@ -12,3 +12,8 @@ output "node_group_name" {
   value       = module.eks.node_group_name
   description = "Managed node group created for the cluster."
 }
+
+output "availability_zones" {
+  value       = module.eks.availability_zones
+  description = "Availability zones backing the example cluster."
+}

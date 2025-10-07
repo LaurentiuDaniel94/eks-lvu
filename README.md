@@ -32,6 +32,8 @@ By default the example creates a small, highly-available cluster that uses the f
 - EKS control plane running Kubernetes `1.29`
 - Managed node group using on-demand `t3.small` instances (1–3 nodes, desired size 2)
 
+The module automatically tags the subnets so that AWS load balancers created by Kubernetes can be provisioned successfully, and it gracefully limits the requested availability zones to those offered in the selected region.
+
 Refer to the variables defined in `modules/eks-cluster/variables.tf` to customize the deployment.
 
 ## Cleanup
